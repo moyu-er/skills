@@ -73,27 +73,53 @@ Archive a completed OpenSpec change: confirm artifact and task completion, run `
 
    **Completion criterion**: Validator exits 0, or user has been shown the failures and instructed to fix and retry.
 
-5. **Archive via openspec CLI**
+5. **Preview delta-spec sync impact**
+
+   If `artifactPaths.specs.existingOutputPaths` is non-empty, the archive will sync delta specs into the main specs at `openspec/specs/<capability>/spec.md`. Before invoking the archive CLI, give the user a chance to understand what will change:
+
+   a. For each delta spec path, determine the corresponding main spec path:
+      - Delta spec: `openspec/changes/<name>/specs/<capability>/spec.md` (or as returned by `artifactPaths.specs.existingOutputPaths`)
+      - Main spec: `openspec/specs/<capability>/spec.md`
+
+   b. Compare the delta spec to the main spec (if the main spec exists) or note that the main spec is new.
+
+   c. Summarize for each capability:
+      - **ADDED** — new capability spec (no main spec existed)
+      - **MODIFIED** — main spec exists and delta differs
+      - **UNCHANGED** — main spec exists and is identical
+      - **REMOVED** — delta removes a capability present in main specs (rare; follow schema semantics)
+
+   d. Prompt the user:
+      - "Sync delta specs to main specs? [Yes / No]"
+      - If the user says **No**: pass `--skip-specs` to `openspec archive`.
+      - If the user says **Yes** or does not respond: proceed without `--skip-specs` and let the CLI sync.
+      - If the user explicitly said before invoking this skill that the change is doc-only / tooling / infrastructure and spec sync is not needed, treat that as "No" and pass `--skip-specs`.
+
+   If no delta specs exist, proceed without prompting.
+
+   **Completion criterion**: The user has been informed of what would be synced and the sync preference is recorded.
+
+6. **Archive via openspec CLI**
 
    ```bash
    openspec archive "<name>" --yes
    ```
 
+   Pass `--skip-specs` if the user chose not to sync in step 5 or explicitly pre-declared that spec sync is not needed.
+
    The CLI will:
    - Move `changeRoot` to `<planningHome.changesDir>/archive/YYYY-MM-DD-<name>/`
    - Sync delta specs into `openspec/specs/<capability>/spec.md` (unless `--skip-specs`)
 
-   Pass `--skip-specs` if the user explicitly says the change is doc-only / tooling / infrastructure and spec sync is not needed.
-
    **Completion criterion**: CLI exits 0; the change directory is now under `archive/`.
 
-6. **Show summary**
+7. **Show summary**
 
    Display:
    - Change name
    - Schema that was used
    - Archive location (`archive/YYYY-MM-DD-<name>/`)
-   - Spec sync status: synced by CLI, or skipped (with reason)
+   - Spec sync status: synced by CLI, skipped with reason, or no delta specs
    - Validate result: passed (and whether `change-review` ran or was skipped)
    - Any warnings noted (incomplete artifacts / tasks / skipped change-review / validate warnings)
 

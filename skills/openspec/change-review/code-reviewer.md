@@ -60,7 +60,11 @@ Task tool (general-purpose):
     - Are deviations justified improvements, or problematic departures?
     - Is all planned functionality present?
     - Are all tasks in tasks.md actually implemented? For completed tasks (`[x]`), verify the implementation exists in the diff — a checked-off task with no corresponding code is a Critical issue.
-    - Is the tasks.md progress contract intact? The header must contain `# Tasks: <change-name>` and the instruction to invoke `change-progress`. If it was removed or edited, flag it.
+    - **Progress discipline**: Are there tasks whose implementation clearly exists in the diff but the checkbox is still `[ ]`? This is a Critical progress-management failure; the implementer forgot to call `change-progress`.
+    - **Per-task triggers intact**: Does every `- [ ]` or `[x]` task line still contain explicit `change-progress <change-name>` and `change-adapt <change-name>` triggers? If the triggers were stripped, flag it as Important.
+    - Is the tasks.md progress contract intact? The header must contain `# Tasks: <change-name>` and the instruction to invoke `change-progress` and `change-adapt`. If it was removed or edited, flag it.
+    - **Artifact drift detection**: If the implementation differs from `design.md` or `specs/` but the difference looks correct (e.g., the original plan was unworkable and the code chose a better path), flag this as **artifact drift** rather than implementation error. The artifacts are likely out of date and need to be updated via `change-adapt` before archival. Conversely, if the implementation diverges for no clear reason or contradicts a design decision without rationale, treat it as a deviation.
+    - **Adaptation note completeness**: For every instance of artifact drift, verify that the affected artifact contains an `**Adaptation note**` block. If the code diverges from the plan but no adaptation note exists, this is a **Critical** issue — the change was not recorded. A valid adaptation note must include all three of: what implementation revealed, why the artifact changed, and the new expected behavior. A single blockquote such as `> **Adaptation note**: <what was discovered>. <why the change was made>. <new expected behavior>. Updated during implementation via change-adapt.` satisfies this if all three elements are present. If any element is missing, flag it as Important.
     - **Flow coherence**: If `tasks.md`, `design.md`, or specs describe a data flow, control flow, multi-step process, or producer-consumer chain, does the implementation preserve that order? A task that is supposed to produce data/interface must actually produce it before the consuming task uses it. Flag hidden ordering assumptions, missing hand-offs, or state that one task silently expects another to create.
 
     **Code quality:**
@@ -120,10 +124,10 @@ Task tool (general-purpose):
     ### Issues
 
     #### Critical (Must Fix)
-    [Bugs, security issues, data loss risks, broken functionality, missing spec requirements, checked-off tasks with no implementation]
+    [Bugs, security issues, data loss risks, broken functionality, missing spec requirements, checked-off tasks with no implementation, unmarked tasks that are already implemented in the diff]
 
     #### Important (Should Fix)
-    [Architecture problems, missing features, poor error handling, test gaps, design deviations, flow-order mistakes, hidden data dependencies, missing hand-offs between tasks]
+    [Architecture problems, missing features, poor error handling, test gaps, design deviations, flow-order mistakes, hidden data dependencies, missing hand-offs between tasks, stripped progress/adapt triggers, artifact drift where the plan is out of date but the implementation looks correct]
 
     #### Minor (Nice to Have)
     [Code style, optimization opportunities, documentation polish]
@@ -133,9 +137,10 @@ Task tool (general-purpose):
     - What's wrong
     - Why it matters
     - How to fix (if not obvious)
+    - If the issue is **artifact drift**, explicitly recommend running `change-adapt <change-name>` to update the affected artifacts before re-running `change-review`.
 
     ### Recommendations
-    [Improvements for code quality, architecture, or process]
+    [Improvements for code quality, architecture, or process. If you detected artifact drift, recommend updating the relevant artifacts via `change-adapt` rather than forcing the implementation to match an obsolete plan.]
 
     ### Assessment
 
