@@ -88,6 +88,6 @@ Create an OpenSpec change scaffold and write its `proposal.md` by extracting req
    - Change name and location
    - Proposal created
    - Review verdict
-   - Next step: "Run `change-plan <name>` to create specs, design, and tasks. After that, implement using your preferred method and mark progress with `change-progress <name>` per task."
+    - Next step: "Run `change-plan <name>` to create specs, design, and tasks. After that, implement using your preferred method. Mark progress with `change-progress <name>` after each verified task. If a task reveals the plan itself is wrong, call `change-adapt <name>` first to update the affected artifact and record the rationale."
 
    **Completion criterion**: Status shown and next step communicated.
