@@ -86,12 +86,27 @@ Create an OpenSpec change and write all planning artifacts in one invocation. Th
         ```markdown
         # Tasks: <change-name>
 
-        > **Progress tracking**: After completing each task below and verifying it passes,
-        > invoke `change-progress <change-name>` to mark the checkbox before moving on.
-        > Do not batch-mark: complete one, mark one, then continue.
+        > **Progress discipline**: Each task has two possible exits — choose the right one.
+        > - If the task is implemented as planned and verified: call `change-progress <change-name>` to flip its checkbox.
+        > - If implementation reveals the task, design, or spec needs to change: call `change-adapt <change-name>` first, update the affected artifact, and record the rationale. Then continue implementation and call `change-progress` when done.
+        > Do not batch-mark tasks and do not silently diverge from the artifacts.
         ```
 
         Each task must name concrete files and a concrete action.
+
+        **Per-task triggers**: Every `- [ ]` task line must end with the exact text:
+
+        ```markdown
+        → verify, then call `change-progress <change-name>`; if the plan needs to change, call `change-adapt <change-name>` first and record the rationale
+        ```
+
+        or, for multi-line tasks, include a sub-bullet:
+
+        ```markdown
+        - [ ] `src/auth/jwt.ts`: implement JWT validation
+          - After verifying: call `change-progress <change-name>`
+          - If design/spec/task needs adjustment: call `change-adapt <change-name>` first and record the rationale in the affected artifact
+        ```
 
         When the change involves a data flow, control flow, multi-step process, or dependencies between components, tasks must also reflect **flow coherence**: earlier tasks must produce the data/state/interfaces that later tasks consume, and the ordering must make the hand-off explicit. Do not list tasks as an unrelated bag of files; explain or name the passing data/interface at each step so the implementer can see the chain.
 

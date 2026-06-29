@@ -1,12 +1,17 @@
 ---
 name: change-plan
-description: Write specs, design, and tasks artifacts for an existing OpenSpec change from its proposal. Also use to continue a partially planned change by creating the next ready artifact (e.g., "continue the change" or "write the remaining artifacts").
+description: Write specs, design, and tasks artifacts for an existing OpenSpec change from its proposal, or continue a partially planned change by writing only the next ready artifact.
 disable-model-invocation: true
 ---
 
-Write the `specs/`, `design.md`, and `tasks.md` artifacts for an existing OpenSpec change by reading its `proposal.md`, then dispatch a read-only subagent to review the multi-file consistency before finishing.
+Write the `specs/`, `design.md`, and `tasks.md` artifacts for an existing OpenSpec change by reading its `proposal.md`, then dispatch a read-only subagent to review the multi-file consistency before finishing. Also used to continue a partially planned change by writing only the next `ready` artifact.
 
-**Input**: Optionally specify a change name. If omitted, infer from conversation context. If ambiguous, run `openspec list --json` and let the user select.
+**Input**: Optionally specify a change name and a mode. If omitted, infer from conversation context. If ambiguous, run `openspec list --json` and let the user select.
+
+**Modes**
+
+- **Create mode** (default): Write all missing artifacts in dependency order from `proposal.md`. Use this the first time `change-plan` is called for a change.
+- **Continue mode**: Write only the next `ready` artifact and stop. Use this when a previous `change-plan` run was interrupted or when the user explicitly says "continue the change" / "write the remaining artifacts".
 
 ## Steps
 
@@ -18,22 +23,36 @@ Write the `specs/`, `design.md`, and `tasks.md` artifacts for an existing OpenSp
 
    **Completion criterion**: A change name is in hand.
 
-2. **Get artifact status**
+2. **Determine the mode**
+
+   - If the user said "continue", "continue the change", "write the next artifact", "finish planning", or similar → **Continue mode**.
+   - If any artifacts are already `done` and at least one artifact is still `ready` or `blocked` → infer **Continue mode**.
+   - Otherwise → **Create mode**.
+
+   **Completion criterion**: A mode is selected and clearly stated to the user.
+
+3. **Get artifact status**
 
    ```bash
    openspec status --change "<name>" --json
    ```
-   Parse: `changeRoot`, `artifactPaths`, `artifacts[]` (each has `id` + `status`), `isComplete`. Read `proposal.md` from `artifactPaths.proposal.existingOutputPaths`.
+   Parse: `changeRoot`, `artifactPaths`, `artifacts[]` (each has `id` + `status`), `isComplete`, `actionContext`. Read `proposal.md` from `artifactPaths.proposal.existingOutputPaths`.
+
+   If `actionContext.mode: "workspace-planning"` → STOP and explain that workspace planning continuation is not supported; do not edit workspace artifacts as if they were repo-local.
 
    If `isComplete: true` → STOP and tell the user all artifacts are already created. Suggest implementation or `change-review`.
 
    If `proposal.md` does not exist → STOP and tell the user to run `change-new` first.
 
-   **Completion criterion**: You have the change root, artifact list, and the proposal content.
+   **Completion criterion**: You have the change root, artifact list, the proposal content, and the selected mode.
 
-3. **Loop: write each ready artifact in dependency order**
+4. **Loop: write each ready artifact in dependency order**
 
    The `spec-driven` schema dependency order is: `proposal` (done) → `specs` → `design` → `tasks`. If some artifacts are already `done` from a previous run, skip them and continue with the next `ready` artifact. After each artifact, re-run `openspec status --change "<name>" --json` to confirm the next is `ready` before proceeding.
+
+    In **Continue mode**, stop after writing **one** artifact. Then run steps 5–7 (dispatch reviewer, act on feedback, show status) for the artifact you just created before stopping. This ensures a partially planned change is reviewed before it is handed off to implementation.
+
+    In **Create mode**, continue until all artifacts in `applyRequires` are `done`, then run steps 5–7 once for the complete artifact set.
 
    For each `ready` artifact:
 
@@ -58,12 +77,27 @@ Write the `specs/`, `design.md`, and `tasks.md` artifacts for an existing OpenSp
         ```markdown
         # Tasks: <change-name>
 
-        > **Progress tracking**: After completing each task below and verifying it passes,
-        > invoke `change-progress <change-name>` to mark the checkbox before moving on.
-        > Do not batch-mark: complete one, mark one, then continue.
+        > **Progress discipline**: Each task has two possible exits — choose the right one.
+        > - If the task is implemented as planned and verified: call `change-progress <change-name>` to flip its checkbox.
+        > - If implementation reveals the task, design, or spec needs to change: call `change-adapt <change-name>` first, update the affected artifact, and record the rationale. Then continue implementation and call `change-progress` when done.
+        > Do not batch-mark tasks and do not silently diverge from the artifacts.
         ```
 
         Each task must name concrete files to create/modify and a concrete action — never "implement feature X". Tasks should be small enough to complete in one focused session.
+
+        **Per-task triggers**: Every `- [ ]` task line must end with the exact text:
+
+        ```markdown
+        → verify, then call `change-progress <change-name>`; if the plan needs to change, call `change-adapt <change-name>` first and record the rationale
+        ```
+
+        or, for multi-line tasks, include a sub-bullet:
+
+        ```markdown
+        - [ ] `src/auth/jwt.ts`: implement JWT validation
+          - After verifying: call `change-progress <change-name>`
+          - If design/spec/task needs adjustment: call `change-adapt <change-name>` first and record the rationale in the affected artifact
+        ```
 
         When the change involves a data flow, control flow, multi-step process, or dependencies between components, tasks must also reflect that **flow coherence**: earlier tasks must produce the data/state/interfaces that later tasks consume, and the ordering must make the hand-off explicit. Do not list tasks as an unrelated bag of files; explain or name the passing data/interface at each step so the implementer can see the chain.
 
@@ -71,7 +105,7 @@ Write the `specs/`, `design.md`, and `tasks.md` artifacts for an existing OpenSp
 
    **Validate-as-gate**: `openspec status: done` only confirms file existence — it does NOT check normative compliance. The OpenSpec validator's strict gate must be run explicitly before treating the planning phase as complete. If validate reports errors, fix them (in this case the artifact set is still mutable) and re-run until zero errors. Do not mark this skill complete on `status: done` alone.
 
-4. **Dispatch the artifacts reviewer**
+5. **Dispatch the artifacts reviewer**
 
    Use the `task` tool to dispatch a read-only `oracle` subagent with the review prompt at [`artifacts-review-prompt.md`](artifacts-review-prompt.md) in this skill folder. Fill the template placeholders:
    - `{CHANGE_NAME}` — the change name
@@ -89,7 +123,7 @@ Write the `specs/`, `design.md`, and `tasks.md` artifacts for an existing OpenSp
 
    **Completion criterion**: Oracle returns a verdict (Ready / With fixes / Not ready).
 
-5. **Act on review feedback**
+6. **Act on review feedback**
 
    - **CRITICAL** issues: fix immediately, re-dispatch oracle if the fix is substantial.
    - **IMPORTANT** issues: fix or document why you chose not to.
@@ -97,7 +131,7 @@ Write the `specs/`, `design.md`, and `tasks.md` artifacts for an existing OpenSp
 
    **Completion criterion**: Every CRITICAL and IMPORTANT issue has been resolved or has a stated rationale.
 
-6. **Show final status**
+7. **Show final status**
 
    ```bash
    openspec status --change "<name>"
@@ -105,8 +139,10 @@ Write the `specs/`, `design.md`, and `tasks.md` artifacts for an existing OpenSp
 
    Display:
    - Change name and location
-   - Artifacts created (specs, design, tasks)
+   - Mode used (Create or Continue)
+   - Artifacts created or continued (specs, design, tasks)
    - Review verdict
-   - Next step: "Artifacts complete. Implement using your preferred method — each task in `tasks.md` guides you to call `change-progress <name>` after each verified task. When all tasks are done, run `change-review <name>` before archiving."
+   - In **Create mode**: "Artifacts complete. Implement using your preferred method — each task in `tasks.md` guides you to call `change-progress <name>` after each verified task, or `change-adapt <name>` if the plan needs to change. When all tasks are done, run `change-review <name>` before archiving."
+   - In **Continue mode**: "Created the next ready artifact. Remaining artifacts will be unlocked after you run `change-plan <name>` again or continue the conversation."
 
    **Completion criterion**: Status shown and next step communicated.

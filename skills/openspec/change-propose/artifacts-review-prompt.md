@@ -53,9 +53,14 @@ For every `- [ ]` checkbox in `tasks.md`:
 - If you remove one task, can you still tell how the remaining tasks connect? If the answer is "no", the flow is not explicit enough.
 - Are there hidden dependencies (implicit data, side effects, ordering assumptions) that should be surfaced in the task text?
 
-**Also check** the mandatory `tasks.md` header:
-- Does it contain the change name (e.g., `# Tasks: <change-name>`)? Without this, downstream `change-progress` calls cannot target the correct change.
-- Does it contain the instruction to invoke `change-progress <change-name>` after completing each task? If missing, the implementation agent will not mark progress as it goes.
+**Also check** the mandatory `tasks.md` header and per-task triggers:
+- Does it contain the change name (e.g., `# Tasks: <change-name>`)? Without this, downstream `change-progress` and `change-adapt` calls cannot target the correct change.
+- Does the header clearly distinguish the two exits for every task?
+  - "Implemented as planned → call `change-progress <change-name>`."
+  - "Plan is wrong → call `change-adapt <change-name>` first, update the artifact, and record the rationale."
+- Does every `- [ ]` task line or its immediate sub-bullets contain an explicit `change-progress <change-name>` trigger?
+- Does every `- [ ]` task line or its immediate sub-bullets contain an explicit `change-adapt <change-name>` trigger that also mentions recording the rationale?
+- If triggers are only in the header and not on individual task lines, this fails — the header alone is not enough to prevent implementers from forgetting.
 
 ### 4. Cross-Artifact Consistency  · IMPORTANT
 
