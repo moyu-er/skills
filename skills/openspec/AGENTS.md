@@ -26,15 +26,21 @@ Both diffs must be empty. If they are not, copy the master file over the `change
 `change-propose/SKILL.md` is the **single model-invoked entry point** for creating a full change end-to-end. It is equivalent to running `change-new` followed by `change-plan`. To avoid relying on nested skill invocation:
 
 - The full step sequence from `change-new` and `change-plan` is duplicated inside `change-propose/SKILL.md`.
-- `change-new` and `change-plan` are marked `disable-model-invocation: true`. They remain available for human users who want the step-by-step path, but the model should not reach for them automatically.
+- `change-new`, `change-plan`, `change-review`, and `change-archive` are marked `disable-model-invocation: true`. They remain available for human users who want the step-by-step path, but the model should not reach for them automatically.
 
 When you change any of the following in `change-new` or `change-plan`, you **must** mirror the change in `change-propose/SKILL.md`:
 
 - Step order or completion criteria.
 - `openspec` CLI commands or JSON fields parsed from status/instructions output.
-- Artifact-specific rules for `specs/`, `design.md`, or `tasks.md` (including flow-coherence requirements).
+- Artifact-specific rules for `specs/`, `design.md`, or `tasks.md` (including flow-coherence requirements and per-task `change-progress` / `change-adapt` trigger requirements).
 - Review feedback handling rules (CRITICAL / IMPORTANT / MINOR).
 - Subagent dispatch instructions or prompt placeholder lists.
+
+## change-adapt Discovery Rule
+
+`change-adapt` is a **model-reachable governance skill** fired by an implementing agent when the plan turns out to be wrong. The trigger text lives on each `- [ ]` task line in `tasks.md` and in the `change-progress` skill's comparison table — **not** in a cross-skill call from `change-propose`.
+
+For this reason `change-adapt/SKILL.md` is intentionally **not** inlined into `change-propose/SKILL.md`. The inlining rule above does **not** apply to `change-adapt`. Maintainers: do not add `change-adapt` steps to `change-propose`.
 
 ## Data Flow / Process Flow Requirement
 
@@ -45,6 +51,15 @@ Any change that involves data flow, control flow, multi-step processes, or compo
 - Hand-off points between tasks must be visible in the task text or in short connecting sentences.
 
 The `artifacts-review-prompt.md` checks this in both `change-plan` and `change-propose`. Keep those checks identical.
+
+## Mid-Implementation Adaptation Rule
+
+Implementation is not read-only. When an implementer discovers that a task, design decision, requirement, or scope assumption is wrong, the change must be recorded back into the artifacts instead of silently diverging:
+
+- `change-adapt` is the single entry point for mid-implementation artifact updates.
+- `tasks.md` must make the `change-adapt` trigger visible on every task line or its immediate sub-bullets, alongside the `change-progress` trigger.
+- `change-review` must distinguish **artifact drift** (plan is obsolete, implementation looks correct) from **implementation deviation** (plan is still correct, implementation diverged). Artifact drift should be resolved by running `change-adapt`, not by forcing the code to match an outdated plan.
+- After `change-adapt` updates artifacts, re-run `openspec validate --strict` before continuing implementation.
 
 ## Normative-Compliance Gate (validate as gate, not as status)
 
@@ -78,5 +93,6 @@ The `proposal-review-prompt.md` and `artifacts-review-prompt.md` both enforce th
 - [ ] If you touched `change-new/proposal-review-prompt.md`, copied it to `change-propose/proposal-review-prompt.md`.
 - [ ] If you touched `change-plan/artifacts-review-prompt.md`, copied it to `change-propose/artifacts-review-prompt.md`.
 - [ ] If you touched `change-new/SKILL.md` or `change-plan/SKILL.md`, checked whether `change-propose/SKILL.md` needs the same update.
+- [ ] If you introduced or changed `change-adapt`, confirmed the change does not need to be mirrored in `change-propose/SKILL.md` (it doesn't — `change-adapt` is not inlined).
 - [ ] If you changed anything related to the validate-as-gate or first-sentence SHALL rule, updated the corresponding section above.
 - [ ] Ran the two `diff` commands above to confirm prompt copies are in sync.

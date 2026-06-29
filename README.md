@@ -18,7 +18,7 @@ Skills are organized into buckets under `skills/`. Each bucket has its own `READ
 
 ### [OpenSpec](./skills/openspec/README.md)
 
-Spec-driven change management powered by the OpenSpec CLI. Guide an agent through proposal, planning, implementation tracking, verification, and archival — with oracle review at every planning stage.
+Spec-driven change management powered by the OpenSpec CLI. Guide an agent through proposal, planning, implementation tracking, adaptation, verification, and archival — with oracle review at every planning stage.
 
 ### [Engineer](./skills/engineer/README.md)
 
