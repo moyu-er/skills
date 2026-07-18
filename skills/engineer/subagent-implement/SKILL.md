@@ -62,7 +62,7 @@ Two subagent roles, both dispatched with the host's sub-agent tool:
 | Gate | If complex, dispatch reviewer against this step's base | `./reviewer-prompt.md` |
 | Accept | Accept the step | — |
 | Mark | Mark the task done in the source list | Edit / task tool |
-| Commit | Commit the accepted step as one unit | git |
+| Commit | One commit per accepted step: `git log --oneline -10` first to match repo style, stage only this step's files by path, write the message in repo style | git |
 | Final | Full suite + typecheck + reviewer against original base | `./reviewer-prompt.md` + tooling |
 
 ## The Process
@@ -102,7 +102,11 @@ For each task, in the source's order:
 
 6. **Mark the task done** in the source list, using that list's convention (flip a `- [ ]` checkbox, or update the harness task tool). Only the main agent marks — and only after a step is accepted.
 
-7. **Commit** — one commit per accepted step.
+7. **Commit** — one commit per accepted step. Before writing the message:
+   a. Run `git log --oneline -10` to learn the repo's commit style (prefix convention, scope usage, language, body length).
+   b. Write the message in **that style** — same prefix format, same scope granularity, same language. Do not invent a style the repo doesn't use; an LLM's default style (e.g. English subject + Chinese body, no prefix) is not the repo's style.
+   c. Stage only the files this step touched — use the implementer's change manifest, stage explicitly by path. Never `git add -A` when the working tree holds unrelated changes.
+   d. Subject ≤ 72 chars, imperative mood. Body explains *what* and *why*, not how (the diff shows how). Reference the task/ticket in the footer if the repo convention does so.
 
 **Stop and escalate** when retries exhaust (see §5) or when a plan-shaped block surfaces. Because steps are serial, a stuck step blocks every step after it — do not skip ahead.
 
@@ -166,3 +170,5 @@ This final review is **not** complexity-gated. It always runs.
 | Dispatching a reviewer on a simple step | Wastes the most capable model | Skip the gate for simple steps; default to complex only when ambiguous |
 | Inventing a fix-up task for an unplanned gap | Unauthorized scope expansion | Escalate to the user |
 | Skipping a stuck step to keep moving | Serial dependency — later steps build on a broken base | Stop and escalate |
+| Committing with `git add -A` when unrelated changes are present | Sweeps concurrent WIP into the step's commit, polluting history | Stage explicitly by path using the implementer's change manifest |
+| Commit message ignoring repo style (missing prefix, mixed language, invented format) | Breaks `git log` readability; fails commit-lint if the repo enforces one | Run `git log --oneline -10` first; match prefix, scope, and language |
