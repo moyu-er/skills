@@ -22,4 +22,4 @@ Spec-driven change management powered by the OpenSpec CLI. Guide an agent throug
 
 ### [Engineer](./skills/engineer/README.md)
 
-Daily engineering practices — code review, quality enforcement, and cleanup. Currently includes `simplify` for post-change code quality review via parallel subagents.
+Daily engineering practices — code review, quality enforcement, cleanup, and structured implementation. Includes `simplify` (post-change quality review via parallel subagents), `subagent-implement` (serial per-task implementation with a per-step acceptance gate), and `parallel-implement` (parallel implementation of many tasks with dependency edges).
