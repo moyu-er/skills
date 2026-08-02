@@ -10,16 +10,17 @@ A collection of composable skills that give AI coding agents structured workflow
 npx skills@latest add moyu-er/skills
 ```
 
-The installer detects your installed coding agents and lets you pick where to install. Select the skills you want from each bucket.
+The installer detects your installed coding agents and lets you pick where to install. Select the skills you want.
 
 ## Skills
 
-Skills are organized into buckets under `skills/`. Each bucket has its own `README.md` with usage details, workflows, and prerequisites.
-
-### [OpenSpec](./skills/openspec/README.md)
-
-Spec-driven change management powered by the OpenSpec CLI. Guide an agent through proposal, planning, implementation tracking, adaptation, verification, and archival — with oracle review at every planning stage.
-
 ### [Engineer](./skills/engineer/README.md)
 
-Daily engineering practices — code review, quality enforcement, cleanup, and structured implementation. Includes `simplify` (post-change quality review via parallel subagents), `subagent-implement` (serial per-task implementation with a per-step acceptance gate), and `parallel-implement` (parallel implementation of many tasks with dependency edges).
+Daily engineering practices — code review, quality enforcement, cleanup, and structured implementation:
+
+- **[simplify](./skills/engineer/simplify/SKILL.md)** — Post-change quality review via four parallel agents (reuse, quality, efficiency, altitude), then apply fixes. Quality only — does not hunt for bugs.
+- **[subagent-implement](./skills/engineer/subagent-implement/SKILL.md)** — Serial implementation of an already-specified task list: each task goes to a fresh implementer subagent and is verified, gated, and committed before the next starts.
+- **[parallel-implement](./skills/engineer/parallel-implement/SKILL.md)** — Concurrent implementation of a task DAG: each task dispatches the moment its predecessors land, runs in its own git worktree, and is verified, reviewed, and committed individually.
+- **[converge-divergence](./skills/engineer/converge-divergence/SKILL.md)** — Scan for divergent paths (one concern handled by multiple mechanisms), classify each as justified or accidental, and propose convergence with a persistent divergence index. Proposal-only — does not implement.
+
+The bucket's [README](./skills/engineer/README.md) has per-skill usage details and a chooser for the implementation skills.
