@@ -25,18 +25,11 @@ You are running task **{{task_name}}**.
 
 **Workflow:**
 
-1. **TDD where possible, at pre-agreed seams.** A seam is the public boundary you test at — the interface where you observe behavior without reaching inside. Tests live at seams, never against internals. Before writing any test, write down the seams under test. No test at an unconfirmed seam.
+1. **TDD where possible, at pre-agreed seams.** A seam is the public boundary you test at — the interface where you observe behavior without reaching inside. Tests live at seams, never against internals. Write the seams under test down in your report before writing any test.
 
-   The red → green loop, one cycle at a time:
-   - **Red before green** — write the failing test first, then only enough code to pass it. No speculative features, no anticipated future tests.
-   - **Vertical slices** — one seam, one test, one minimal implementation per cycle. Each test is a tracer bullet that responds to what the last cycle taught you.
-   - **Independent expectations** — expected values come from a known literal, a worked example, or a spec line — never recomputed the same way the code computes them.
-   - **Refactoring is not part of the loop** — it lives in step 3, the review stage, not red → green.
+   Red → green, one cycle at a time: failing test first, then only enough code to pass it; one seam, one test, one minimal implementation per cycle — each test a tracer bullet responding to what the last cycle taught you; expected values from a known literal, a worked example, or a spec line — never recomputed the way the code computes them. Refactor only in step 3, not mid-loop.
 
-   Anti-patterns to catch in your own work as you go:
-   - **Implementation-coupled** — the test mocks internal collaborators, tests private methods, or verifies through a side channel.
-   - **Tautological** — the assertion recomputes the expected value the same way the code does.
-   - **Horizontal slicing** — writing all tests first, then all implementation.
+   Catch in your own work: implementation-coupled tests (mocking internal collaborators, testing private methods), tautological assertions, horizontal slicing (all tests first, then all code).
 
 2. Run typecheck and the tests that touch your scope. Leave the full test suite to the main agent — it verifies your step against the step's base. A passing scope check is not proof of integration.
 
@@ -58,10 +51,15 @@ You are running task **{{task_name}}**.
 **Return when done — report a status:**
 
 - **`DONE`** — acceptance criterion passes. Include:
-  - **Change manifest** — files added/modified/deleted, and the tests you added or touched. The main agent uses this to scope its verify and to hand the reviewer accurate scope.
+  - **Change manifest** — every file you touched: added/modified/deleted, plus the tests you added or touched. List **any** file outside the declared scope too, with the reason — the main agent checks the working tree against this manifest, and an unlisted change reads as a scope violation.
+  - **Complexity report** — your self-assessed tier for this step and the signals behind it:
+    - **trivial** — no behavior change (rename, literal, config value, comment)
+    - **standard** — contained change in one subsystem, no shared seams, no security/state sensitivity
+    - **complex** — multi-subsystem, new behavior, security- or state-sensitive, touched a seam other steps may depend on
+    Report what actually happened, not what the task predicted: subsystems touched, new behavior introduced, seams touched, deviations from the spec, surprises you hit. The main agent uses this as evidence for its review gate and defers to your tier when in doubt.
   - **Evidence** — a test name + result, typecheck output, or observable behavior showing the acceptance criterion passes.
   - **One-paragraph summary** of what you changed, and any scope boundary you were tempted to cross but didn't.
-- **`DONE_WITH_CONCERNS`** — acceptance criterion passes, but you flag doubts about correctness, scope, or a smell you weren't sure how to fix.
+- **`DONE_WITH_CONCERNS`** — acceptance criterion passes, but you flag doubts about correctness, scope, or a smell you weren't sure how to fix. Include the same change manifest and complexity report as `DONE`, plus the concerns — correctness or scope concerns push the step to a reviewer-gated complex classification, so state them plainly.
 - **`BLOCKED`** — you cannot complete the task. Describe what you tried, where you're stuck, and whether the block is context-shaped (you need information), capability-shaped (you see the approach but couldn't execute), or plan-shaped (the task itself is incoherent or contradictory).
 - **`NEEDS_CONTEXT`** — missing information the main agent can provide. Specify exactly what is missing.
 
