@@ -40,22 +40,9 @@ For each divergence, report:
 
 ## DIVERGENCE PATTERNS TO SCAN FOR
 
-Scan for these structural shapes (see PATTERNS.md for full definitions
-and justified/accidental criteria):
-
-- **Construction paths** — same object type built at different call sites
-  with different collaborators threaded.
-- **Wiring mechanisms** — same collaborator injected through different
-  mechanisms (wrapper vs setter vs constructor arg).
-- **Persistence paths** — same data written to two stores or through two
-  adapters when one would suffice.
-- **Filtering / dispatch logic** — same filter/rule implemented inline in
-  multiple handlers instead of one shared helper.
-- **Fallback guards** — `if X is None: fall back to old behavior` for
-  code with no remaining old-path callers.
-- **Import path divergence** — the same module imported through different
-  routes (direct import vs lazy import vs TYPE_CHECKING guard) where one
-  route would suffice.
+Read `{patterns_path}` first — it is the authoritative catalogue of
+divergence shapes, with the justified/accidental criteria for each.
+Scan for every pattern in it.
 
 ## HOW TO SCAN
 
@@ -107,6 +94,5 @@ Checked: {list of concerns examined}
 - Report file:line for every path — no vague references.
 - Classify every divergence — none left as "unclear".
 - Do NOT propose code changes — classification only.
-- Do NOT skip a hot spot — if nothing found, say so explicitly.
 - If a path's mechanism is unclear from reading, say "mechanism unclear"
   and flag it for the main agent to investigate.

@@ -57,7 +57,9 @@ divergence patterns (see `PATTERNS.md`).
 
 Dispatch parallel `explore` subagents — one per hot spot — using the
 brief template at `templates/divergence-hunter.md`. Fill the
-`{hot_spot}` and `{rules_summary}` placeholders before dispatching.
+`{hot_spot}`, `{patterns_path}`, and `{rules_summary}` placeholders
+before dispatching; `{patterns_path}` is the absolute path to this
+skill's `PATTERNS.md` in its installed location.
 
 The subagents are _divergence hunters_: they read code, trace call
 chains, and flag every place where two paths serve one concern. They
@@ -140,16 +142,18 @@ Present the results to the user:
 - **Justified divergences** — listed with their reason.
 
 Do not implement. This skill proposes; the user decides what to act on.
+Implementation the user approves is handed to `subagent-implement` or
+`parallel-implement`.
 
-**Completion criterion:** the report is presented and the user has
-acknowledged it.
+**Completion criterion:** the report is presented; any classification
+the user disputes is resolved before the index records it.
 
 ### 6. Write divergence index
 
 Write a markdown file to `.divergence-index.md` in the project root (or
-a `.divergence/` directory if the project prefers isolation). This is
-the _capability index_ — a persistent record so the next run is
-incremental, not full-scan.
+a `.divergence/` directory if the project prefers isolation). This makes
+the divergence state persistent, so the next run is incremental, not
+full-scan.
 
 The index has three sections:
 
@@ -165,15 +169,3 @@ The index has three sections:
 from this run categorized into the three sections. The file is
 self-contained — a future reader can understand the current divergence
 state of the codebase from it alone.
-
-## Common Mistakes
-
-| Mistake | Why it fails | Fix |
-|---|---|---|
-| Treating duplication as divergence | Wastes effort "converging" things that aren't structurally split | Apply the execution-model test: it's only divergence if deleting one path and routing its callers through the other leaves behaviour identical |
-| Scanning before reading the project's convergence rules | No baseline to classify justified vs accidental against | Read `AGENTS.md`, `rules/`, `CONTEXT.md` first — they define the intended single path a divergence deviates from |
-| Implementing the convergence instead of only proposing | Crosses into an implementation skill's job; user loses the decision | This skill proposes; hand implementation to `subagent-implement` or `parallel-implement` |
-| Re-classifying a previously-justified divergence on a re-run | Defeats the incremental index; re-opens settled decisions | Read `.divergence-index.md`'s Justified section first; do not re-classify recorded justified items |
-| Leaving a caller off a convergence design's caller list | Incomplete convergence — the missed caller re-diverges immediately | The caller list is exhaustive by contract; a missing caller is a failure of step 4, not an acceptable omission |
-| Silently skipping a hot spot with no findings | Hides whether the hot spot was scanned or ignored | Report "no divergence found in {hot_spot}" explicitly, with files/functions scanned |
-| Leaving backward-compatibility shims for code you just wrote | Re-creates the divergence the convergence just removed | Delete dead paths outright — no shims for newly-written code |

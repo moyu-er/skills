@@ -1,7 +1,7 @@
 # Divergence Patterns
 
 The catalogue of divergence shapes this skill hunts for. Each pattern
-names a _structural_ form — the concern that splits — not a domain
+names a _structural_ form — the concern that splits — not domain
 specifics. Every codebase has them; the skill classifies each instance
 as justified or accidental using the execution-model test.
 
