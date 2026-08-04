@@ -11,7 +11,6 @@ disable-model-invocation: true
 The task list and its order already exist — in context, or in a file the user points to. Every task needs a scope and acceptance criteria. This skill executes the list; it never decomposes, orders, or invents tasks. If the list or its order is missing, stop and ask.
 
 - Few or serially dependent tasks, each verified before continuing → this skill.
-- Many independent tasks with dependency edges → `parallel-implement`.
 - One unit of work → `implement`.
 
 ## Roles

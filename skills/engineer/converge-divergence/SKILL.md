@@ -142,8 +142,7 @@ Present the results to the user:
 - **Justified divergences** — listed with their reason.
 
 Do not implement. This skill proposes; the user decides what to act on.
-Implementation the user approves is handed to `subagent-implement` or
-`parallel-implement`.
+Implementation the user approves is handed to `subagent-implement`.
 
 **Completion criterion:** the report is presented; any classification
 the user disputes is resolved before the index records it.
