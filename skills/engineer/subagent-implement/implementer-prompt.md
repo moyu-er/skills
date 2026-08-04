@@ -27,7 +27,7 @@ You are running task **{{task_name}}**.
 
 1. **TDD where possible, at pre-agreed seams.** A seam is the public boundary you test at — the interface where you observe behavior without reaching inside. Tests live at seams, never against internals. Write the seams under test down in your report before writing any test.
 
-   Red → green, one cycle at a time: failing test first, then only enough code to pass it; one seam, one test, one minimal implementation per cycle — each test a tracer bullet responding to what the last cycle taught you; expected values from a known literal, a worked example, or a spec line — never recomputed the way the code computes them. Refactor only in step 3, not mid-loop.
+   Red → green, one cycle at a time: failing test first, then only enough code to pass it; one seam, one test, one minimal implementation per cycle — each test a tracer bullet responding to what the last cycle taught you; expected values from a known literal, a worked example, or a spec line — never recomputed the way the code computes them. Refactor only during self-review below, not mid-loop.
 
    Catch in your own work: implementation-coupled tests (mocking internal collaborators, testing private methods), tautological assertions, horizontal slicing (all tests first, then all code).
 
@@ -43,6 +43,7 @@ You are running task **{{task_name}}**.
      - Shotgun Surgery
      - Speculative Generality
      - Middle Man
+     - Workflow-Coupled Comment — references a step or ticket id (`// step 2`, `# I2`) instead of the code. Comments are self-contained: content or a named reference, never a bare id.
 
    - **Spec** — quoted against the task spec, report: (a) requirements missing or partial; (b) behavior not asked for (scope creep); (c) requirements implemented but look wrong. Quote the spec line for each finding.
 

@@ -37,7 +37,7 @@ The task list and its order already exist — in context, or in a file the user 
    - **standard** (contained, single subsystem, no concerns or deviations reported) → you review the diff: every acceptance criterion visible in it, plus a baseline smell scan.
    - **complex** (anything else) → dispatch the reviewer against this step's base. `NEEDS_FIXES`: critical findings → send the implementer back with them; optional → fix now or defer to the final review. Reviewer `BLOCKED` → supply context, re-dispatch once, then escalate.
    - Defer upward to the implementer's self-assessed tier; ambiguous → one tier up. Record the tier and a one-line rationale for every step — passing tests never substitute for this.
-6. **Commit, then mark** — one commit per step: match repo style (`git log --oneline -10` first), stage the manifest paths only. After it lands, mark the task done in the source list.
+6. **Commit, then mark** — one commit per step: match repo style (`git log --oneline -10` first); the message describes the change, not the workflow (`step N` / `s3` / `I2` mean nothing outside this run); stage the manifest paths only. After it lands, mark the task done in the source list.
 
 **Failure budget:** max 3 send-backs per step — one counter covering verify red, scope violations, and reviewer criticals. Exhausted → stop, report the step and its status, ask the user. Steps are serial: a stuck step blocks everything after it, so never skip ahead.
 
